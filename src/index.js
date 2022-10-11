@@ -5,6 +5,8 @@ const restaurantsList = document.getElementById('restaurants-list');
 const usersList = document.getElementById('users-list');
 const reservationsList = document.getElementById('reservations-list');
 
+let users;
+
 //////////////////// API GETS
 // Fetch the /api/restaurants route to get restaurants data from database.
 const getRestaurants = async () => {
@@ -39,9 +41,16 @@ const renderRestaurants = (restaurants) => {
 const renderUsers = (users) => {
 	// Each li is also a link that, when clicked,
 	// the user's reservations should display in the reservation column.
-	// TODO!!!
+
+	// parseInt so we can use === to assign class in li
+	const idFromURL = parseInt(window.location.hash.slice(1));
 	const html = users
-		.map((user) => `<li> <a href="#${user.id}"> ${user.name} </a> </li>`)
+		.map(
+			(user) =>
+				`<li class=${user.id === idFromURL ? 'selected' : 'none'}> <a href="#${
+					user.id
+				}"> ${user.name} </a> </li>`
+		)
 		.join('');
 	usersList.innerHTML = html;
 };
@@ -69,13 +78,16 @@ window.addEventListener('hashchange', async () => {
 	// Get & render
 	const reservations = await getReservations(userId);
 	renderReservations(reservations);
+
+	// Rerender users so selected users appears highlighted
+	renderUsers(users);
 });
 //////////////////// INIT
 // A function that invokes all of our functions, like getX() and renderX().
 const init = async () => {
 	try {
 		const rests = await getRestaurants();
-		const users = await getUsers();
+		users = await getUsers();
 		renderUsers(users);
 		renderRestaurants(rests);
 
