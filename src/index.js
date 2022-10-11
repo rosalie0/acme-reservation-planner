@@ -26,7 +26,13 @@ const getReservations = async (userId) => {
 };
 
 const renderReservations = (reservations) => {
-	const html = reservations.map((reservation) => `<li></li>`);
+	const html = reservations
+		.map(
+			(reservation) =>
+				`<li> Has reservation at ${reservation.restaurant.name}</li>`
+		)
+		.join('');
+	reservationsList.innerHTML = html;
 };
 
 // Renders the <li> elements for restaurants, given the <ul> restaurantssList.
@@ -47,12 +53,12 @@ const renderUsers = (users) => {
 	// the user's reservations should display in the reservation column.
 	// TODO!!!
 	const html = users
-		.map((user) => `<li> <a href="${user.id}"> ${user.name} </a> </li>`)
+		.map((user) => `<li> <a href="#${user.id}"> ${user.name} </a> </li>`)
 		.join('');
 	usersList.innerHTML = html;
 };
 
-// A function that invokes all of our functions, like getX() and renderX()
+// A function that invokes all of our functions, like getX() and renderX().
 const init = async () => {
 	try {
 		const rests = await getRestaurants();
@@ -61,13 +67,34 @@ const init = async () => {
 		renderUsers(users);
 		renderRestaurants(rests);
 
-		// Testing to see if getReservations works:
-		// console.log(await getReservations(2));
+		// Even On page refresh, reservations should persist.
+		// Therefore, see if, on page load, there is a # in the URL:
+		if (window.location.hash) {
+			// If so, render the reservations.
+			const userId = window.location.hash.slice(1); // Slice to get rid of # character.
+			const reservations = await getReservations(userId);
+			renderReservations(reservations);
+		}
 	} catch (err) {
-		next(err);
+		console.log(err);
 	}
 };
 
 init();
+
+// Listens for when a user's name is clicked.
+// Invokes renderReservations based on the # in the URL.
+window.addEventListener('hashchange', async () => {
+	// Get userId from the URL:
+	// The location.hash property sets or returns the anchor part of a URL,
+	// including the hash sign (#).
+	const userId = window.location.hash.slice(1); // Slice to get rid of # character.
+
+	// Get the Reservations for userId
+	const reservations = await getReservations(userId);
+
+	// Render
+	renderReservations(reservations);
+});
 
 console.log('hello!');
