@@ -19,8 +19,14 @@ const getUsers = async () => {
 
 // TODO!
 // /api/users/:userId/reservations
-const getReservations = async () => {
-	const response = await fetch('/api/');
+// Given a userId, gets all of their reservations.
+const getReservations = async (userId) => {
+	const response = await fetch(`/api/users/${userId}/reservations`);
+	return await response.json();
+};
+
+const renderReservations = (reservations) => {
+	const html = reservations.map((reservation) => `<li></li>`);
 };
 
 // Renders the <li> elements for restaurants, given the <ul> restaurantssList.
@@ -37,7 +43,12 @@ const renderRestaurants = (restaurants) => {
 // Renders the <li> elements for Users, given the <ul> usersList.
 // Map approach: creates strings for each li, which is given to the <ul>'s innerHTML.
 const renderUsers = (users) => {
-	const html = users.map((user) => `<li> ${user.name} </li>`).join('');
+	// Each li is also a link that, when clicked,
+	// the user's reservations should display in the reservation column.
+	// TODO!!!
+	const html = users
+		.map((user) => `<li> <a href="${user.id}"> ${user.name} </a> </li>`)
+		.join('');
 	usersList.innerHTML = html;
 };
 
@@ -49,6 +60,9 @@ const init = async () => {
 
 		renderUsers(users);
 		renderRestaurants(rests);
+
+		// Testing to see if getReservations works:
+		// console.log(await getReservations(2));
 	} catch (err) {
 		next(err);
 	}

@@ -165,8 +165,13 @@ app.get('/api/restaurants', async (req, res, next) => {
 
 app.get('/api/users/:userId/reservations', async (req, res, next) => {
 	try {
+		// Alternatively, you could modify your route for a users reservations,
+		// ( GET /api/users/:id/reservations ) to include the associated restaurant.
 		res.send(
-			await Reservation.findAll({ where: { userId: req.params.userId } })
+			await Reservation.findAll({
+				where: { userId: req.params.userId },
+				include: Restaurant,
+			})
 		);
 	} catch (ex) {
 		next(ex);
@@ -175,14 +180,12 @@ app.get('/api/users/:userId/reservations', async (req, res, next) => {
 
 app.post('/api/users/:userId/reservations', async (req, res, next) => {
 	try {
-		res
-			.status(201)
-			.send(
-				await Reservation.create({
-					userId: req.params.userId,
-					restaurantId: req.body.restaurantId,
-				})
-			);
+		res.status(201).send(
+			await Reservation.create({
+				userId: req.params.userId,
+				restaurantId: req.body.restaurantId,
+			})
+		);
 	} catch (ex) {
 		next(ex);
 	}
