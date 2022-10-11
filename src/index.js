@@ -8,9 +8,7 @@ const restaurantElement = document.getElementById('restaurants-list');
 const getRestaurants = async () => {
 	const response = await fetch('http://localhost:3000/api/restaurants');
 	const json = await response.json();
-	// This returns correctly
-	// console.log(json);
-	return json.restaurants;
+	return json;
 };
 
 const renderRestaurants = (restaurants) => {
@@ -24,8 +22,6 @@ const renderRestaurants = (restaurants) => {
 
 const init = async () => {
 	const rests = await getRestaurants();
-	// This returns undefined
-	// console.log(rests);
 	renderRestaurants(rests);
 };
 
