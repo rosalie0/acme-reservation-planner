@@ -25,16 +25,38 @@ const getReservations = async (userId) => {
 };
 
 //////////////////// RENDER FUNCTIONS
-// Renders the <li> elements for restaurants, given the <ul> restaurantssList.
-// Using let...of loop and .createElement, innerText, and .appendChild
-// This is just one way to approach how to render the html.
 const renderRestaurants = (restaurants) => {
-	for (let restaurant of restaurants) {
-		const element = document.createElement('li'); // Create a new list element
-		element.innerText = restaurant.name; // Give it the restaurant's name
-		restaurantsList.appendChild(element); // Attach current li to the ul.
-	}
+	const html = restaurants
+		.map((rest) => `<li data-id='${rest.id}'> ${rest.name} </li>`)
+		.join('');
+	restaurantsList.innerHTML = html;
 };
+
+// Clicking on a restaurant should add a reservation for the selected user.
+restaurantsList.addEventListener('click', async (event) => {
+	if (event.target.nodeName !== 'LI') return; // We only want to handle LI clicks.
+
+	const userId = window.location.hash.slice(1); // Get userId from url
+	if (!userId) {
+		alert('You must select a user in order to make a reservation');
+		return;
+	}
+
+	// Make POST req using api
+	const reservation = await fetch(`/api/users/${userId}/reservations`, {
+		body: JSON.stringify({
+			restaurantId: event.target.getAttribute('data-id'),
+		}),
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	});
+
+	// Rerender reservations
+	const reservations = await getReservations(userId);
+	renderReservations(reservations);
+});
 
 // Renders the <li> elements for Users, given the <ul> usersList.
 // Map approach: creates strings for each li, which is given to the <ul>'s innerHTML.
