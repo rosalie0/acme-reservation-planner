@@ -32,6 +32,59 @@ const renderRestaurants = (restaurants) => {
 	restaurantsList.innerHTML = html;
 };
 
+// Renders the <li> elements for Users, given the <ul> usersList.
+// Map approach: creates strings for each li, which is given to the <ul>'s innerHTML.
+const renderUsers = (users) => {
+	// Each li is also a link that, when clicked,
+	// the user's reservations should display in the reservation column.
+
+	// parseInt so we can use === to assign class in li
+	const idFromURL = parseInt(window.location.hash.slice(1));
+	const html = users
+		.map(
+			(user) =>
+				`<li class=${user.id === idFromURL ? 'selected' : 'none'}> <a href="#${
+					user.id
+				}"> ${user.name} </a> </li>`
+		)
+		.join('');
+	usersList.innerHTML = html;
+};
+
+const renderReservations = (reservations) => {
+	const html = reservations
+		.map(
+			(reservation) =>
+				`<li>
+					Has reservation at ${reservation.restaurant.name}
+					<button class='delete-reservation-button' data-id='${reservation.id}'> X </button>
+				</li>
+				`
+		)
+		.join('');
+	reservationsList.innerHTML = html;
+};
+
+//////////////////// EVENT LISTENERS
+
+// Listens for when a user's name is clicked.
+// Invokes renderReservations based on the # in the URL.
+
+// Listen for hash change in the URL for 'selected' user
+window.addEventListener('hashchange', async () => {
+	// Get userId from the URL:
+	// The location.hash property returns the anchor part of a URL,
+	// including the hash sign (#).
+	const userId = window.location.hash.slice(1); // Slice to get rid of # character.
+
+	// Get & render
+	const reservations = await getReservations(userId);
+	renderReservations(reservations);
+
+	// Rerender users so selected users appears highlighted
+	renderUsers(users);
+});
+
 // Clicking on a restaurant should add a reservation for the selected user.
 restaurantsList.addEventListener('click', async (event) => {
 	if (event.target.nodeName !== 'LI') return; // We only want to handle LI clicks.
@@ -58,52 +111,28 @@ restaurantsList.addEventListener('click', async (event) => {
 	renderReservations(reservations);
 });
 
-// Renders the <li> elements for Users, given the <ul> usersList.
-// Map approach: creates strings for each li, which is given to the <ul>'s innerHTML.
-const renderUsers = (users) => {
-	// Each li is also a link that, when clicked,
-	// the user's reservations should display in the reservation column.
+// Listen to reservationList. When the delete button is clicked,
+// the corresponding reservation record should be deleted from the database,
+// and from the client-side display.
+reservationsList.addEventListener('click', async (event) => {
+	if (event.target.nodeName !== 'BUTTON') return; // Only care about button click.
 
-	// parseInt so we can use === to assign class in li
-	const idFromURL = parseInt(window.location.hash.slice(1));
-	const html = users
-		.map(
-			(user) =>
-				`<li class=${user.id === idFromURL ? 'selected' : 'none'}> <a href="#${
-					user.id
-				}"> ${user.name} </a> </li>`
-		)
-		.join('');
-	usersList.innerHTML = html;
-};
-
-const renderReservations = (reservations) => {
-	const html = reservations
-		.map(
-			(reservation) =>
-				`<li> Has reservation at ${reservation.restaurant.name}</li>`
-		)
-		.join('');
-	reservationsList.innerHTML = html;
-};
-
-//////////////////// EVENT LISTENERS
-
-// Listens for when a user's name is clicked.
-// Invokes renderReservations based on the # in the URL.
-window.addEventListener('hashchange', async () => {
-	// Get userId from the URL:
-	// The location.hash property returns the anchor part of a URL,
-	// including the hash sign (#).
 	const userId = window.location.hash.slice(1); // Slice to get rid of # character.
+	const reservationId = event.target.getAttribute('data-id');
 
-	// Get & render
+	// Delete from database
+	const deletedReservation = await fetch(`/api/reservations/${reservationId}`, {
+		method: 'DELETE',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	});
+
+	// Rerender reservations
 	const reservations = await getReservations(userId);
 	renderReservations(reservations);
-
-	// Rerender users so selected users appears highlighted
-	renderUsers(users);
 });
+
 //////////////////// INIT
 // A function that invokes all of our functions, like getX() and renderX().
 const init = async () => {
